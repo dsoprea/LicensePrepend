@@ -1,12 +1,19 @@
 import sys
 import os
 import os.path
+import logging
+
+_logger = logging.getLogger(__name__)
 
 
 class Scanner(object):
     def __init__(self, path, indicator, line_check_quantity, is_recursive, 
                  ignore_files, ignore_directories, is_no_stats, 
                  extension=None):
+
+        if os.path.isdir(path) is False:
+            raise ValueError("Path is not a directory.")
+
         self.__path = path
         self.__indicator = indicator
         self.__line_check_quantity = line_check_quantity
@@ -17,6 +24,16 @@ class Scanner(object):
         self.__extension = '.' + extension.lower() \
                             if extension is not None \
                             else None
+
+    def __dump(d):
+        raw = d.encode('ASCII')
+        import sys
+        buf = "DUMP> "
+        for c in raw:
+            buf += " %s(%02X)" % (chr(c), c)
+
+        buf += "\n"
+        return buf
 
     def scan(self):
         dirs = 0
@@ -30,8 +47,12 @@ class Scanner(object):
 
             dirs += 1
 
-            if os.path.basename(root) in self.__ignore_directories:
+            path_name = os.path.basename(root)
+            if path_name in self.__ignore_directories:
                 excluded_dirs += 1
+                _logger.debug("Path is excluded: [%s] => [%s]", 
+                              root, path_name)
+
                 continue
 
             for filename in child_files:
@@ -39,30 +60,46 @@ class Scanner(object):
                     os.path.splitext(filename)[1].lower() != self.__extension or \
                    filename in self.__ignore_files:
                     excluded_files += 1
+                    _logger.debug("File is excluded: [%s]", filename)
+
                     continue
                 else:
                     files += 1
 
                 filepath = os.path.join(root, filename)
+                _logger.debug("Scanning: [%s]", filepath)
 
                 buffered = []
                 with open(filepath) as f:
                     i = 0
                     found = False
                     for row in f:
-                        if i > self.__line_check_quantity:
+                        buffered.append(row)
+
+                        if i >= self.__line_check_quantity:
                             break
 
                         if self.__indicator in row:
                             found = True
-                            break
+                            _logger.debug("Found license indicator on line "
+                                          "(%d)." % (i))
 
-                        buffered.append(row)
+                            break
+                        else:
+                            _logger.debug("DID NOT find license indicator "
+                                          "[%s] on line (%d): [%s]" % 
+                                          (self.__indicator, i, row))
+
                         i += 1
 
                     if found is True:
                         havestub += 1
+                        _logger.debug("File already has the stub on line "
+                                      "(%d)." % (i))
+
                         continue
+
+                    _logger.debug("File needs stub. Reading remaining lines.")
 
                     while True:
                         row = f.readline()

@@ -22,5 +22,5 @@ setup(name='prepend_license',
       install_requires=[
             'nose'
       ],
-      scripts=['scripts/pl'],
+      scripts=['scripts/plicense'],
 )
