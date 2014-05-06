@@ -14,12 +14,13 @@ setup(name='prepend_license',
       keywords='license',
       author='Dustin Oprea',
       author_email='myselfasunder@gmail.com',
-      url='',
+      url='https://github.com/dsoprea/LicensePrepend',
       license='GPL 2',
       packages=find_packages(exclude=[]),
       include_package_data=True,
       zip_safe=True,
       install_requires=[
+            'nose'
       ],
       scripts=['scripts/pl'],
 )
