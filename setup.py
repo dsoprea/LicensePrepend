@@ -1,11 +1,14 @@
 from setuptools import setup, find_packages
 import os
 
+description = "Make sure all source files have your standard licensing stub "\
+              "at the top."
+
 long_description = ""
 
-setup(name='prepend_licenses',
+setup(name='prepend_license',
       version='0.2.0',
-      description="Make sure all source files have ayour standard licensing stub at the top.",
+      description=description,
       long_description=long_description,
       classifiers=[],
       keywords='license',

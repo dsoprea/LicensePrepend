@@ -30,14 +30,11 @@ def _configure_logging():
     ch.setFormatter(formatter)
     logger.addHandler(ch)
 
-    logging.getLogger('deb_pkg_tools.control').setLevel(logging.INFO)
-    logging.getLogger('deb_pkg_tools.package').setLevel(logging.INFO)
-
-_configure_logging()
+#_configure_logging()
 _logger = logging.getLogger(__name__)
 
-description = "Identify every file in the current directory and downward has "\
-              "a license stub near the top."
+description = "Intelligently install the license-stub at the top of every "\
+              "file."
 
 parser = argparse.ArgumentParser(description=description)
 

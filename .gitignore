@@ -1,6 +1,6 @@
-.lib
-.bin
-.include
-.local
+lib
+bin
+include
+local
 .Python
 plicense.egg-info
