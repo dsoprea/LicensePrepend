@@ -113,6 +113,11 @@ parser.add_argument(
         metavar='ignore-directory',
         help="Don't process these directories")
 
+parser.add_argument(
+        '-n', '--no-stats', 
+        action='store_true', 
+        help="Don't print stats (usually goes to stderr)")
+
 args = parser.parse_args()
 
 def _get_license_text(license_stub_template_filepath, explicit_reps):
@@ -141,7 +146,7 @@ def _get_license_text(license_stub_template_filepath, explicit_reps):
 
 def _apply_license(license_lines, license_indicator, max_lines, insert_after, 
                    insert_after_max_lines, path, is_no_changes, is_quiet, 
-                   is_recursive, ignore_files, ignore_directories, 
+                   is_recursive, ignore_files, ignore_directories, is_no_stats,
                    sourcecode_ext=None):
 
     scanner = plicense.scanner.Scanner(
@@ -151,6 +156,7 @@ def _apply_license(license_lines, license_indicator, max_lines, insert_after,
                 is_recursive,
                 ignore_files,
                 ignore_directories,
+                is_no_stats,
                 sourcecode_ext)
 
     injector = plicense.injector.Injector(
@@ -188,4 +194,5 @@ _apply_license(
     args.no_recursion is not True,
     args.ignore_files,
     args.ignore_directories,
+    args.no_stats,
     args.extension)

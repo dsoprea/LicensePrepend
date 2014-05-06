@@ -1,41 +1,109 @@
-def test_license_add():
-    raise NotImplementedError()
+import os.path
+import subprocess
+import tempfile
+import shutil
+import string
+import datetime
 
-def test_license_already_added():
-    raise NotImplementedError()
+import unittest
 
-def test_extension_option():
-    raise NotImplementedError()
+_SCRIPT_PATH = os.path.join(os.path.dirname(__file__), '..', 'scripts', 'pl')
 
-def test_no_changes_option():
-    raise NotImplementedError()
+_LICENSE = \
+"""# I am a license
+# Copyright $YEAR
+"""
 
-def test_quiet_option():
-    raise NotImplementedError()
+_REPLACED_LICENSE = string.Template(_LICENSE).substitute({ 
+                            'YEAR': datetime.datetime.now().strftime('%Y') 
+                        })
 
-def test_indicator_option():
-    raise NotImplementedError()
+class _TestCaseBase(unittest.TestCase):
+    def setUp(self):
+        self.path = tempfile.mkdtemp()
 
-def test_max_lines_option():
-    raise NotImplementedError()
+        license_res = tempfile.NamedTemporaryFile()
+        license_res.write(_LICENSE)
+        license_res.flush()
 
-def test_insert_after_option():
-    raise NotImplementedError()
+        self.license_res = license_res
 
-def test_insert_after_max_lines_option():
-    raise NotImplementedError()
+    def tearDown(self):
+        self.license_res.close()
+        shutil.rmtree(self.path)
 
-def test_replace_option():
-    raise NotImplementedError()
+    def run_cmd(self, options):
+        cmd = [_SCRIPT_PATH, self.license_res.name, '--path', self.path, '--no-stats'] + options
+        
+        p = subprocess.Popen(cmd, stdout=subprocess.PIPE)
+        r = p.wait()
+        output = p.stdout.read()
 
-def test_path_option():
-    raise NotImplementedError()
+        if r != 0:
+            print(output)
+            raise ValueError("The command returned failure.")
 
-def test_no_recursion_option():
-    raise NotImplementedError()
+        return output
 
-def test_ignore_files_option():
-    raise NotImplementedError()
+class TestGeneral(_TestCaseBase):
+    def test_license_add(self):
+        source_filepath = os.path.join(self.path, 'sourcecode')
+        with open(source_filepath, 'w') as f:
+            pass
 
-def test_ignore_directories_option():
-    raise NotImplementedError()
+        raw_output = self.run_cmd([])
+
+        output = raw_output.rstrip()
+        self.assertEqual(source_filepath, output)
+
+        with open(source_filepath) as f:
+            modified_source = f.read()
+            self.assertEqual(_REPLACED_LICENSE + "\n", modified_source)
+
+    def test_license_already_added(self):
+        source_filepath = os.path.join(self.path, 'sourcecode')
+        with open(source_filepath, 'w') as f:
+            pass
+
+        raw_output = self.run_cmd([])
+        raw_output = self.run_cmd([])
+
+        output = raw_output.rstrip()
+        self.assertEqual('', output)
+
+        with open(source_filepath) as f:
+            modified_source = f.read()
+            self.assertEqual(_REPLACED_LICENSE + "\n", modified_source)
+#
+#    def test_extension_option(self):
+#        raise NotImplementedError()
+#
+#    def test_no_changes_option(self):
+#        raise NotImplementedError()
+#
+#    def test_quiet_option(self):
+#        raise NotImplementedError()
+#
+#    def test_indicator_option(self):
+#        raise NotImplementedError()
+#
+#    def test_max_lines_option(self):
+#        raise NotImplementedError()
+#
+#    def test_insert_after_option(self):
+#        raise NotImplementedError()
+#
+#    def test_insert_after_max_lines_option(self):
+#        raise NotImplementedError()
+#
+#    def test_replace_option(self):
+#        raise NotImplementedError()
+#
+#    def test_no_recursion_option(self):
+#        raise NotImplementedError()
+#
+#    def test_ignore_files_option(self):
+#        raise NotImplementedError()
+#
+#    def test_ignore_directories_option(self):
+#        raise NotImplementedError()

@@ -5,13 +5,15 @@ import os.path
 
 class Scanner(object):
     def __init__(self, path, indicator, line_check_quantity, is_recursive, 
-                 ignore_files, ignore_directories, extension=None):
+                 ignore_files, ignore_directories, is_no_stats, 
+                 extension=None):
         self.__path = path
         self.__indicator = indicator
         self.__line_check_quantity = line_check_quantity
         self.__is_recursive = is_recursive
         self.__ignore_files = ignore_files
         self.__ignore_directories = ignore_directories
+        self.__is_no_stats = is_no_stats
         self.__extension = '.' + extension.lower() \
                             if extension is not None \
                             else None
@@ -71,6 +73,7 @@ class Scanner(object):
 
                     yield (filepath, buffered)
 
-        sys.stderr.write("(%d)/(%d) directories scanned.\n" % (dirs, dirs + excluded_dirs))
-        sys.stderr.write("(%d)/(%d) files scanned.\n" % (files, files + excluded_files))
-        sys.stderr.write("(%d)/(%d) of the found files already had the stub.\n" % (havestub, files))
+        if self.__is_no_stats is False:
+            sys.stderr.write("(%d)/(%d) directories scanned.\n" % (dirs, dirs + excluded_dirs))
+            sys.stderr.write("(%d)/(%d) files scanned.\n" % (files, files + excluded_files))
+            sys.stderr.write("(%d)/(%d) of the found files already had the stub.\n" % (havestub, files))

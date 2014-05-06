@@ -32,5 +32,3 @@ class Injector(object):
     def prepend(self, lines):
         insert_index = self.__get_insert_index(lines)
         lines[insert_index:insert_index] = ([self.__nl] if insert_index > 0 else []) + self.__license_lines
-
-        print(''.join(lines))
