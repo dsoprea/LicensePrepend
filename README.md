@@ -1,4 +1,1 @@
-LicensePrepend
-==============
-
-Make sure all your source files have your standard licensing stub at the top.
+This project is being actively developed, and is near completion.
