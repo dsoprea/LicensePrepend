@@ -1,0 +1,194 @@
+#!/usr/bin/env python3
+
+import sys
+import os.path
+
+root_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+sys.path.insert(0, root_path)
+
+import argparse
+import os
+import string
+import datetime
+import getpass
+import logging
+import io
+
+import plicense.scanner
+import plicense.injector
+
+def _configure_logging():
+    # Configure logging.
+
+    logger = logging.getLogger()
+    logger.setLevel(logging.DEBUG)
+    #logger.setLevel(logging.INFO)
+
+    ch = logging.StreamHandler()
+
+    formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+    ch.setFormatter(formatter)
+    logger.addHandler(ch)
+
+    logging.getLogger('deb_pkg_tools.control').setLevel(logging.INFO)
+    logging.getLogger('deb_pkg_tools.package').setLevel(logging.INFO)
+
+_configure_logging()
+_logger = logging.getLogger(__name__)
+
+description = "Identify every file in the current directory and downward has "\
+              "a license stub near the top."
+
+parser = argparse.ArgumentParser(description=description)
+
+parser.add_argument(
+        'license_filepath', 
+        metavar='license filepath',
+        help="The license file-path")
+
+parser.add_argument(
+        '-e', '--extension', 
+        help="Only consider files with certain extensions")
+
+mutex = parser.add_mutually_exclusive_group()
+
+mutex.add_argument(
+        '-d', '--no-changes', 
+        action='store_true', 
+        help="Just print the files that would be changed")
+
+mutex.add_argument(
+        '-q', '--quiet', 
+        action='store_true', 
+        help="Don't print the files being updated")
+
+parser.add_argument(
+        '-i', '--indicator', 
+        default='Copyright', 
+        help="If this string is found within the first N lines of sourcecode, the license stub will be considered to be present.")
+
+parser.add_argument(
+        '-l', '--max-lines', 
+        type=int, 
+        default=10, 
+        help="The maximum number of lines at the top of the sourcecode to check")
+
+parser.add_argument(
+        '-a', '--insert-after', 
+        default=['#!/'], 
+        action='append', 
+        help="If this appears within the first N lines, insert the license after rather than before")
+
+parser.add_argument(
+        '-m', '--insert-after-max-lines', 
+        type=int, 
+        default=10, 
+        help="The maximum number of lines to check for the insert-after string")
+
+parser.add_argument(
+        '-r', '--replace', 
+        action='append', 
+        nargs=2,
+        default=[],
+        help="Do a string-replacement into the license text")
+
+parser.add_argument(
+        '-p', '--path', 
+        default=os.getcwd(),
+        help="Path to use (defaults to current)")
+
+parser.add_argument(
+        '-c', '--no-recursion', 
+        action='store_true', 
+        help="Don't print the files being updated")
+
+parser.add_argument(
+        '-f', '--ignore-files', 
+        action='append', 
+        default=[],
+        metavar='ignore-file',
+        help="Don't process these files")
+
+parser.add_argument(
+        '-g', '--ignore-directories', 
+        action='append', 
+        default=[],
+        metavar='ignore-directory',
+        help="Don't process these directories")
+
+args = parser.parse_args()
+
+def _get_license_text(license_stub_template_filepath, explicit_reps):
+    with open(license_stub_template_filepath) as f:
+        license_stub_template = f.read().strip()
+
+    if "\r\n" in license_stub_template:
+        nl = "\r\n"
+    elif "\r" in license_stub_template:
+        nl = "\r"
+    else:
+        nl = "\n"
+
+    replacements = { 'YEAR': datetime.datetime.now().strftime('%Y'),
+                     'USER': getpass.getuser() }
+
+    replacements.update(explicit_reps)
+
+    t = string.Template(license_stub_template)
+    license_stub = t.substitute(replacements)
+
+    s = io.StringIO(license_stub)
+    lines = s.readlines() + [nl, nl]
+
+    return (lines, nl)
+
+def _apply_license(license_lines, license_indicator, max_lines, insert_after, 
+                   insert_after_max_lines, path, is_no_changes, is_quiet, 
+                   is_recursive, ignore_files, ignore_directories, 
+                   sourcecode_ext=None):
+
+    scanner = plicense.scanner.Scanner(
+                path, 
+                license_indicator, 
+                max_lines, 
+                is_recursive,
+                ignore_files,
+                ignore_directories,
+                sourcecode_ext)
+
+    injector = plicense.injector.Injector(
+                license_lines, 
+                insert_after=insert_after,
+                insert_after_max_lines=insert_after_max_lines)
+
+    for (filepath, lines) in scanner.scan():
+        if is_quiet is False:
+            print(filepath)
+
+        injector.prepend(lines)
+
+        if is_no_changes is False:
+            with open(filepath, 'w') as f:
+                for line in lines:
+                    f.write(line)
+
+replacements = dict([(k.upper(), v) for (k, v) in args.replace])
+
+license_lines = _get_license_text(args.license_filepath, replacements)
+
+if os.path.exists(args.path) is False:
+    raise ValueError("Path does not exist: %s" % (args.path))
+
+_apply_license(
+    license_lines, 
+    args.indicator, 
+    args.max_lines, 
+    args.insert_after,
+    args.insert_after_max_lines,
+    args.path,
+    args.no_changes,
+    args.quiet,
+    args.no_recursion is not True,
+    args.ignore_files,
+    args.ignore_directories,
+    args.extension)
