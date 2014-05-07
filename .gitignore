@@ -4,3 +4,4 @@ include
 local
 .Python
 plicense.egg-info
+/dist/

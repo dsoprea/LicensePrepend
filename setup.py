@@ -6,7 +6,7 @@ description = "Make sure all source files have your standard licensing stub "\
 
 long_description = ""
 
-setup(name='prepend_license',
+setup(name='plicense',
       version='0.2.0',
       description=description,
       long_description=long_description,
