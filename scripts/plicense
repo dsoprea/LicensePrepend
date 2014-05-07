@@ -40,13 +40,13 @@ parser = argparse.ArgumentParser(description=description)
 
 parser.add_argument(
         'license_filepath', 
-        metavar='license filepath',
+        metavar='<license filepath>',
         help="The license file-path")
 
 parser.add_argument(
         '-e', '--extension', 
         metavar='<ext>',
-        help="Only consider files with certain extensions")
+        help="Filter by extension")
 
 mutex = parser.add_mutually_exclusive_group()
 
@@ -64,28 +64,28 @@ parser.add_argument(
         '-i', '--indicator', 
         metavar='<string>',
         default='opyright', 
-        help="If this string is found within the first N lines of sourcecode, the license stub will be considered to be present.")
+        help="What to look for at the top of the file if a stub is already present")
 
 parser.add_argument(
         '-l', '--max-lines', 
         type=int, 
         metavar='<n>',
         default=10, 
-        help="The maximum number of lines at the top of the sourcecode to check")
+        help="The number of lines at the top of the sourcecode to check for the indicator")
 
 parser.add_argument(
         '-a', '--insert-after', 
         metavar='<string>',
         default=['#!/'], 
         action='append', 
-        help="If this appears within the first N lines, insert the license after rather than before")
+        help="If this exists at the top of the file, insert the license after rather than before")
 
 parser.add_argument(
         '-m', '--insert-after-max-lines', 
         type=int, 
         metavar='<n>',
         default=10, 
-        help="The maximum number of lines to check for the insert-after string")
+        help="The number of lines at the top to check for insert-after strings")
 
 parser.add_argument(
         '-r', '--replace', 
@@ -111,14 +111,14 @@ parser.add_argument(
         action='append', 
         default=[],
         metavar='<filename>',
-        help="Don't process these files")
+        help="Don't process this file")
 
 parser.add_argument(
         '-g', '--ignore-directory', 
         action='append', 
         default=[],
-        metavar='<rel path>',
-        help="Don't process these directories")
+        metavar='<directory name>',
+        help="Don't process this directory")
 
 parser.add_argument(
         '-n', '--no-stats', 

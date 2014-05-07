@@ -37,16 +37,12 @@ class Scanner(object):
         return buf
 
     def scan(self):
-        _logger.debug("Scanning. Ignore directories:\n%s", self.__ignore_directories)
-
         dirs = 0
         files = 0
         excluded_dirs = 0
         excluded_files = 0
         havestub = 0
         for (root, child_dirs, child_files) in os.walk(self.__path):
-            _logger.debug("Scanning path: %s", root)
-
             if self.__is_recursive is False and dirs > 0:
                 break
 
