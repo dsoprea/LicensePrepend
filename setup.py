@@ -7,7 +7,7 @@ description = "Make sure all source files have your standard licensing stub "\
 long_description = ""
 
 setup(name='plicense',
-      version='0.2.0',
+      version='0.2.1',
       description=description,
       long_description=long_description,
       classifiers=[],

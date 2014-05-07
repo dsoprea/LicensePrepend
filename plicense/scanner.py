@@ -110,16 +110,18 @@ class Scanner(object):
 
                     _logger.debug("File needs stub. Reading remaining lines.")
 
-                    while True:
-                        row = f.readline()
-                        if row == '':
-                            break
-
+                    for row in f:
                         buffered.append(row)
 
                     yield (filepath, buffered)
 
         if self.__is_no_stats is False:
-            sys.stderr.write("(%d)/(%d) directories scanned.\n" % (dirs, dirs + excluded_dirs))
-            sys.stderr.write("(%d)/(%d) files scanned.\n" % (files, files + excluded_files))
-            sys.stderr.write("(%d)/(%d) of the found files already had the stub.\n" % (havestub, files))
+            sys.stderr.write("(%d)/(%d) directories scanned.\n" % 
+                             (dirs, dirs + excluded_dirs))
+            
+            sys.stderr.write("(%d)/(%d) files scanned.\n" % 
+                             (files, files + excluded_files))
+            
+            sys.stderr.write("(%d)/(%d) of the found files needed the "
+                             "stub.\n" % 
+                             (files - havestub, files))

@@ -17,6 +17,11 @@ import io
 import plicense.scanner
 import plicense.injector
 
+try:
+    _unicode = unicode
+except NameError:
+    _unicode = str
+
 def _configure_logging():
     # Configure logging.
 
@@ -148,7 +153,7 @@ def _get_license_text(license_stub_template_filepath, explicit_reps):
     t = string.Template(license_stub_template)
     license_stub = t.substitute(replacements)
 
-    s = io.StringIO(license_stub)
+    s = io.StringIO(_unicode(license_stub))
     lines = s.readlines() + [nl, nl]
 
     return (lines, nl)
