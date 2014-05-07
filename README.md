@@ -53,7 +53,8 @@ command-line options.
 
 1. Process my scripts/ directory. The files in this directory don't have
    extensions. However, I can't run *plicense* over the whole tree, or I'll be
-   including *virtualenv* and *git* files, which should be ignored.
+   including *virtualenv* and *git* files, which should be ignored. I could
+   introduce additional options, but this will be simpler.
 
    ```
    beantool$ plicense -p scripts -r author "Dustin Oprea" LICENSE_STUB 
