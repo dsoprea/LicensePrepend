@@ -45,6 +45,7 @@ parser.add_argument(
 
 parser.add_argument(
         '-e', '--extension', 
+        metavar='<ext>',
         help="Only consider files with certain extensions")
 
 mutex = parser.add_mutually_exclusive_group()
@@ -61,17 +62,20 @@ mutex.add_argument(
 
 parser.add_argument(
         '-i', '--indicator', 
+        metavar='<string>',
         default='opyright', 
         help="If this string is found within the first N lines of sourcecode, the license stub will be considered to be present.")
 
 parser.add_argument(
         '-l', '--max-lines', 
         type=int, 
+        metavar='<n>',
         default=10, 
         help="The maximum number of lines at the top of the sourcecode to check")
 
 parser.add_argument(
         '-a', '--insert-after', 
+        metavar='<string>',
         default=['#!/'], 
         action='append', 
         help="If this appears within the first N lines, insert the license after rather than before")
@@ -79,6 +83,7 @@ parser.add_argument(
 parser.add_argument(
         '-m', '--insert-after-max-lines', 
         type=int, 
+        metavar='<n>',
         default=10, 
         help="The maximum number of lines to check for the insert-after string")
 
@@ -86,11 +91,13 @@ parser.add_argument(
         '-r', '--replace', 
         action='append', 
         nargs=2,
+        metavar=('<key>', '<value>'),
         default=[],
         help="Do a string-replacement into the license text")
 
 parser.add_argument(
         '-p', '--path', 
+        metavar='<path>',
         default=os.getcwd(),
         help="Path to use (defaults to current)")
 
@@ -100,17 +107,17 @@ parser.add_argument(
         help="Don't print the files being updated")
 
 parser.add_argument(
-        '-f', '--ignore-files', 
+        '-f', '--ignore-file', 
         action='append', 
         default=[],
-        metavar='ignore-file',
+        metavar='<filename>',
         help="Don't process these files")
 
 parser.add_argument(
-        '-g', '--ignore-directories', 
+        '-g', '--ignore-directory', 
         action='append', 
         default=[],
-        metavar='ignore-directory',
+        metavar='<rel path>',
         help="Don't process these directories")
 
 parser.add_argument(
@@ -134,7 +141,9 @@ def _get_license_text(license_stub_template_filepath, explicit_reps):
     replacements = { 'YEAR': datetime.datetime.now().strftime('%Y'),
                      'USER': getpass.getuser() }
 
-    replacements.update(explicit_reps)
+    replacements.update(dict([(k.upper(), v) 
+                              for (k, v) 
+                              in explicit_reps.items()]))
 
     t = string.Template(license_stub_template)
     license_stub = t.substitute(replacements)
@@ -143,6 +152,9 @@ def _get_license_text(license_stub_template_filepath, explicit_reps):
     lines = s.readlines() + [nl, nl]
 
     return (lines, nl)
+
+def _dump(d):
+    return "DUMP> " + (' '.join([x.encode('hex') for x in d])) + "\n"
 
 def _apply_license(license_lines, license_indicator, max_lines, insert_after, 
                    insert_after_max_lines, path, is_no_changes, is_quiet, 
@@ -168,7 +180,7 @@ def _apply_license(license_lines, license_indicator, max_lines, insert_after,
         if is_quiet is False:
             print(filepath)
 
-        injector.prepend(lines)
+        lines = injector.prepend(lines)
 
         if is_no_changes is False:
             with open(filepath, 'w') as f:
@@ -194,7 +206,7 @@ _apply_license(
     args.no_changes,
     args.quiet,
     args.no_recursion is not True,
-    args.ignore_files,
-    args.ignore_directories,
+    args.ignore_file,
+    args.ignore_directory,
     args.no_stats,
     args.extension)

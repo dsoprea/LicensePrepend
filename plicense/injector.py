@@ -1,4 +1,5 @@
 import logging
+import pprint
 
 _logger = logging.getLogger(__name__)
 
@@ -35,8 +36,16 @@ class Injector(object):
 
         return insert_at
 
+    def __dump(self, d):
+        return "DUMP> " + (' '.join([x.encode('hex') for x in d])) + "\n"
+
     def prepend(self, lines):
         insert_index = self.__get_insert_index(lines)
         _logger.debug("Doing insert at line (%d).", insert_index)
 
-        lines[insert_index:insert_index] = self.__license_lines
+        if insert_index == 0:
+            return self.__license_lines + lines
+        else:
+            lines[insert_index:insert_index] = \
+                (["\n"] if insert_index > 0 else []) + self.__license_lines
+            return lines

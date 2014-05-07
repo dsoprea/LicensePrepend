@@ -2,6 +2,7 @@ import sys
 import os
 import os.path
 import logging
+import pprint
 
 _logger = logging.getLogger(__name__)
 
@@ -36,23 +37,35 @@ class Scanner(object):
         return buf
 
     def scan(self):
+        _logger.debug("Scanning. Ignore directories:\n%s", self.__ignore_directories)
+
         dirs = 0
         files = 0
         excluded_dirs = 0
         excluded_files = 0
         havestub = 0
         for (root, child_dirs, child_files) in os.walk(self.__path):
+            _logger.debug("Scanning path: %s", root)
+
             if self.__is_recursive is False and dirs > 0:
                 break
 
             dirs += 1
 
             path_name = os.path.basename(root)
-            if path_name in self.__ignore_directories:
+            ignored = False
+            for ignored_path in self.__ignore_directories:
+                if path_name.startswith(ignored_path) is False:
+                    continue
+
                 excluded_dirs += 1
                 _logger.debug("Path is excluded: [%s] => [%s]", 
                               root, path_name)
 
+                ignored = True
+                break
+
+            if ignored is True:
                 continue
 
             for filename in child_files:
